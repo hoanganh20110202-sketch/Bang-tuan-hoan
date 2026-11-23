@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bảng tuần hoàn hóa học</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:20px;
+ font-family:Arial,sans-serif;
+ background:#101827;color:white
+}
+h1{text-align:center;color:#60d8ff}
+.sub{text-align:center;color:#b9c8d9}
+.search{
+ display:block;width:100%;max-width:550px;
+ margin:20px auto;padding:14px;
+ border-radius:12px;border:2px solid #60d8ff;
+ font-size:17px
+}
+.table{
+ display:grid;
+ grid-template-columns:repeat(18,minmax(48px,1fr));
+ gap:5px;max-width:1300px;margin:auto;
+ overflow-x:auto
+}
+.element{
+ min-width:0;min-height:83px;
+ border-radius:7px;padding:5px;
+ cursor:pointer;text-align:center;
+ border:1px solid #ffffff30;
+ transition:.2s
+}
+.element:hover{transform:scale(1.08);border:2px solid white}
+.num{font-size:10px;text-align:left}
+.symbol{font-size:21px;font-weight:bold}
+.name{font-size:9px;overflow-wrap:anywhere}
+.mass{font-size:9px}
+.alkali{background:#e87979;color:#241010}
+.alkaline{background:#f4b46b;color:#24170a}
+.transition{background:#e8d36b;color:#251f08}
+.post{background:#85c9a0;color:#10251a}
+.metalloid{background:#6dcac5;color:#102626}
+.nonmetal{background:#75a9ed;color:#10213b}
+.halogen{background:#b49ae9;color:#25163d}
+.noble{background:#d98acb;color:#30102a}
+.lanthanide{background:#b5a0dd;color:#211534}
+.actinide{background:#9b9cce;color:#151735}
+.other{background:#68798d}
+.info{
+ max-width:850px;margin:30px auto;
+ padding:24px;background:#1d2b40;
+ border-radius:15px;border:1px solid #4b6684;
+ line-height:1.7
+}
+.info h2{color:#60d8ff}
+.info h3{color:#ffd477}
+.tag{display:inline-block;padding:5px 10px;
+ background:#284d68;border-radius:20px;margin:3px}
+button{
+ padding:10px 15px;border:0;border-radius:8px;
+ background:#60d8ff;cursor:pointer;font-weight:bold
+}
+@media(max-width:700px){
+ body{padding:8px}
+ .table{grid-template-columns:repeat(18,55px);overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<h1>⚗ BẢNG TUẦN HOÀN HÓA HỌC</h1>
+<p class="sub">Khám phá 118 nguyên tố – Kiến thức Hóa học đến lớp 10</p>
+
+<input id="search" class="search"
+placeholder="Nhập tên, ký hiệu hoặc số hiệu nguyên tử...">
+
+<div id="table" class="table"></div>
+
+<div class="info" id="info">
+ <h2>Chào mừng bạn!</h2>
+ Chọn một nguyên tố trong bảng tuần hoàn hoặc nhập tên
+ nguyên tố vào ô tìm kiếm để khám phá.
+</div>
+
+<script>
+const raw = `
+1|H|Hydrogen|1.008|1|1|phi kim
+2|He|Helium|4.003|18|1|khí hiếm
+3|Li|Lithium|6.94|1|2|kim loại kiềm
+4|Be|Beryllium|9.012|2|2|kim loại kiềm thổ
+5|B|Boron|10.81|13|2|á kim
+6|C|Carbon|12.011|14|2|phi kim
+7|N|Nitrogen|14.007|15|2|phi kim
+8|O|Oxygen|15.999|16|2|phi kim
+9|F|Fluorine|18.998|17|2|halogen
+10|Ne|Neon|20.18|18|2|khí hiếm
+11|Na|Sodium|22.99|1|3|kim loại kiềm
+12|Mg|Magnesium|24.305|2|3|kim loại kiềm thổ
+13|Al|Aluminium|26.982|13|3|kim loại
+14|Si|Silicon|28.085|14|3|á kim
+15|P|Phosphorus|30.974|15|3|phi kim
+16|S|Sulfur|32.06|16|3|phi kim
+17|Cl|Chlorine|35.45|17|3|halogen
+18|Ar|Argon|39.948|18|3|khí hiếm
+19|K|Potassium|39.098|1|4|kim loại kiềm
+20|Ca|Calcium|40.078|2|4|kim loại kiềm thổ
+21|Sc|Scandium|44.956|3|4|kim loại chuyển tiếp
+22|Ti|Titanium|47.867|4|4|kim loại chuyển tiếp
+23|V|Vanadium|50.942|5|4|kim loại chuyển tiếp
+24|Cr|Chromium|51.996|6|4|kim loại chuyển tiếp
+25|Mn|Manganese|54.938|7|4|kim loại chuyển tiếp
+26|Fe|Iron|55.845|8|4|kim loại chuyển tiếp
+27|Co|Cobalt|58.933|9|4|kim loại chuyển tiếp
+28|Ni|Nickel|58.693|10|4|kim loại chuyển tiếp
+29|Cu|Copper|63.546|11|4|kim loại chuyển tiếp
+30|Zn|Zinc|65.38|12|4|kim loại chuyển tiếp
+31|Ga|Gallium|69.723|13|4|kim loại
+32|Ge|Germanium|72.63|14|4|á kim
+33|As|Arsenic|74.922|15|4|á kim
+34|Se|Selenium|78.971|16|4|phi kim
+35|Br|Bromine|79.904|17|4|halogen
+36|Kr|Krypton|83.798|18|4|khí hiếm
+37|Rb|Rubidium|85.468|1|5|kim loại kiềm
+38|Sr|Strontium|87.62|2|5|kim loại kiềm thổ
+39|Y|Yttrium|88.906|3|5|kim loại chuyển tiếp
+40|Zr|Zirconium|91.224|4|5|kim loại chuyển tiếp
+41|Nb|Niobium|92.906|5|5|kim loại chuyển tiếp
+42|Mo|Molybdenum|95.95|6|5|kim loại chuyển tiếp
+43|Tc|Technetium|98|7|5|kim loại chuyển tiếp
+44|Ru|Ruthenium|101.07|8|5|kim loại chuyển tiếp
+45|Rh|Rhodium|102.906|9|5|kim loại chuyển tiếp
+46|Pd|Palladium|106.42|10|5|kim loại chuyển tiếp
+47|Ag|Silver|107.868|11|5|kim loại chuyển tiếp
+48|Cd|Cadmium|112.414|12|5|kim loại chuyển tiếp
+49|In|Indium|114.818|13|5|kim loại
+50|Sn|Tin|118.71|14|5|kim loại
+51|Sb|Antimony|121.76|15|5|á kim
+52|Te|Tellurium|127.6|16|5|á kim
+53|I|Iodine|126.904|17|5|halogen
+54|Xe|Xenon|131.293|18|5|khí hiếm
+55|Cs|Cesium|132.905|1|6|kim loại kiềm
+56|Ba|Barium|137.327|2|6|kim loại kiềm thổ
+57|La|Lanthanum|138.905|3|6|họ Lanthanide
+58|Ce|Cerium|140.116|3|6|họ Lanthanide
+59|Pr|Praseodymium|140.908|3|6|họ Lanthanide
+60|Nd|Neodymium|144.242|3|6|họ Lanthanide
+61|Pm|Promethium|145|3|6|họ Lanthanide
+62|Sm|Samarium|150.36|3|6|họ Lanthanide
+63|Eu|Europium|151.964|3|6|họ Lanthanide
+64|Gd|Gadolinium|157.25|3|6|họ Lanthanide
+65|Tb|Terbium|158.925|3|6|họ Lanthanide
+66|Dy|Dysprosium|162.5|3|6|họ Lanthanide
+67|Ho|Holmium|164.93|3|6|họ Lanthanide
+68|Er|Erbium|167.259|3|6|họ Lanthanide
+69|Tm|Thulium|168.934|3|6|họ Lanthanide
+70|Yb|Ytterbium|173.045|3|6|họ Lanthanide
+71|Lu|Lutetium|174.967|3|6|họ Lanthanide
+72|Hf|Hafnium|178.49|4|6|kim loại chuyển tiếp
+73|Ta|Tantalum|180.948|5|6|kim loại chuyển tiếp
+74|W|Tungsten|183.84|6|6|kim loại chuyển tiếp
+75|Re|Rhenium|186.207|7|6|kim loại chuyển tiếp
+76|Os|Osmium|190.23|8|6|kim loại chuyển tiếp
+77|Ir|Iridium|192.217|9|6|kim loại chuyển tiếp
+78|Pt|Platinum|195.084|10|6|kim loại chuyển tiếp
+79|Au|Gold|196.967|11|6|kim loại chuyển tiếp
+80|Hg|Mercury|200.592|12|6|kim loại chuyển tiếp
+81|Tl|Thallium|204.38|13|6|kim loại
+82|Pb|Lead|207.2|14|6|kim loại
+83|Bi|Bismuth|208.98|15|6|kim loại
+84|Po|Polonium|209|16|6|kim loại
+85|At|Astatine|210|17|6|halogen
+86|Rn|Radon|222|18|6|khí hiếm
+87|Fr|Francium|223|1|7|kim loại kiềm
+88|Ra|Radium|226|2|7|kim loại kiềm thổ
+89|Ac|Actinium|227|3|7|họ Actinide
+90|Th|Thorium|232.038|3|7|họ Actinide
+91|Pa|Protactinium|231.036|3|7|họ Actinide
+92|U|Uranium|238.029|3|7|họ Actinide
+93|Np|Neptunium|237|3|7|họ Actinide
+94|Pu|Plutonium|244|3|7|họ Actinide
+95|Am|Americium|243|3|7|họ Actinide
+96|Cm|Curium|247|3|7|họ Actinide
+97|Bk|Berkelium|247|3|7|họ Actinide
+98|Cf|Californium|251|3|7|họ Actinide
+99|Es|Einsteinium|252|3|7|họ Actinide
+100|Fm|Fermium|257|3|7|họ Actinide
+101|Md|Mendelevium|258|3|7|họ Actinide
+102|No|Nobelium|259|3|7|họ Actinide
+103|Lr|Lawrencium|266|3|7|họ Actinide
+104|Rf|Rutherfordium|267|4|7|kim loại chuyển tiếp
+105|Db|Dubnium|268|5|7|kim loại chuyển tiếp
+106|Sg|Seaborgium|269|6|7|kim loại chuyển tiếp
+107|Bh|Bohrium|270|7|7|kim loại chuyển tiếp
+108|Hs|Hassium|277|8|7|kim loại chuyển tiếp
+109|Mt|Meitnerium|278|9|7|kim loại chuyển tiếp
+110|Ds|Darmstadtium|281|10|7|kim loại chuyển tiếp
+111|Rg|Roentgenium|282|11|7|kim loại chuyển tiếp
+112|Cn|Copernicium|285|12|7|kim loại chuyển tiếp
+113|Nh|Nihonium|286|13|7|kim loại
+114|Fl|Flerovium|289|14|7|kim loại
+115|Mc|Moscovium|290|15|7|kim loại
+116|Lv|Livermorium|293|16|7|kim loại
+117|Ts|Tennessine|294|17|7|halogen
+118|Og|Oganesson|294|18|7|khí hiếm
+`;
+
+const elements=raw.trim().split("\n").map(line=>{
+ const [z,symbol,name,mass,group,period,type]=line.split("|");
+ return {z:+z,symbol,name,mass:+mass,group:+group,
+ period:+period,type};
+});
+
+const colors={
+ "kim loại kiềm":"alkali",
+ "kim loại kiềm thổ":"alkaline",
+ "kim loại chuyển tiếp":"transition",
+ "kim loại":"post",
+ "á kim":"metalloid",
+ "phi kim":"nonmetal",
+ "halogen":"halogen",
+ "khí hiếm":"noble",
+ "họ Lanthanide":"lanthanide",
+ "họ Actinide":"actinide"
+};
+
+const special={
+ 1:[1],2:[18],3:[1],4:[2],5:[13],6:[14],
+ 7:[15],8:[16],9:[17],10:[18],
+ 57:[3],58:[3],59:[3],60:[3],61:[3],
+ 62:[3],63:[3],64:[3],65:[3],66:[3],
+ 67:[3],68:[3],69:[3],70:[3],71:[3],
+ 89:[3],90:[3],91:[3],92:[3],93:[3],
+ 94:[3],95:[3],96:[3],97:[3],98:[3],
+ 99:[3],100:[3],101:[3],102:[3],103:[3]
+};
+
+const layoutPosition = el=>{
+ if(el.z>=58 && el.z<=71)
+   return {row:9,col:el.z-54};
+ if(el.z>=90 && el.z<=103)
+   return {row:10,col:el.z-86};
+ return {row:el.period,col:el.group};
+};
+
+const table=document.getElementById("table");
+
+elements.forEach(el=>{
+ const p=layoutPosition(el);
+ const div=document.createElement("div");
+ div.className="element "+(colors[el.type]||"other");
+ div.style.gridColumn=p.col;
+ div.style.gridRow=p.row;
+ div.innerHTML=`
+ <div class="num">${el.z}</div>
+ <div class="symbol">${el.symbol}</div>
+ <div class="name">${el.name}</div>
+ <div class="mass">${el.mass}</div>`;
+ div.onclick=()=>showInfo(el);
+ table.appendChild(div);
+});
+
+function showInfo(el){
+ const neutrons=Math.round(el.mass)-el.z;
+ const electrons=el.z;
+ const protons=el.z;
+
+ const configs={
+ 1:"1",2:"2",3:"2,1",4:"2,2",5:"2,3",
+ 6:"2,4",7:"2,5",8:"2,6",9:"2,7",10:"2,8",
+ 11:"2,8,1",12:"2,8,2",13:"2,8,3",
+ 14:"2,8,4",15:"2,8,5",16:"2,8,6",
+ 17:"2,8,7",18:"2,8,8",19:"2,8,8,1",
+ 20:"2,8,8,2",26:"2,8,14,2",29:"2,8,18,1",
+ 30:"2,8,18,2"
+ };
+
+ const shell=configs[el.z]||"Cần tra cứu cấu hình electron chi tiết";
+
+ const info=document.getElementById("info");
+ info.innerHTML=`
+ <h2>${el.name} (${el.symbol})</h2>
+ <span class="tag">${el.type}</span>
+ <span class="tag">Nhóm ${el.group}</span>
+ <span class="tag">Chu kỳ ${el.period}</span>
+
+ <h3>1. Thông tin cơ bản</h3>
+ <p>Số hiệu nguyên tử: <b>${el.z}</b></p>
+ <p>Nguyên tử khối gần đúng: <b>${el.mass}</b></p>
+ <p>Proton: <b>${protons}</b></p>
+ <p>Electron trong nguyên tử trung hòa: <b>${electrons}</b></p>
+ <p>Neutron gần đúng: <b>${neutrons}</b></p>
+
+ <h3>2. Cấu tạo nguyên tử</h3>
+ <p>Cấu hình electron theo lớp (dữ liệu rút gọn):
+ <b>${shell}</b></p>
+ <p>Lớp electron ngoài cùng là yếu tố quan trọng
+ để dự đoán tính chất hóa học.</p>
+
+ <h3>3. Vị trí trong bảng tuần hoàn</h3>
+ <p>Chu kỳ: ${el.period}</p>
+ <p>Nhóm: ${el.group}</p>
+ <p>Phân loại: ${el.type}</p>
+
+ <h3>4. Tính chất cần học</h3>
+ <p><b>Tính chất vật lý:</b> Phân loại ${el.type}.
+ Trạng thái và các đặc điểm vật lý cụ thể phụ thuộc
+ vào nguyên tố và điều kiện nhiệt độ.</p>
+
+ <p><b>Tính chất hóa học:</b> Phụ thuộc cấu hình
+ electron, đặc biệt là electron lớp ngoài cùng.
+ Cần xét các phản ứng đặc trưng của nguyên tố.</p>
+
+ <h3>5. Kiến thức hóa học lớp 10</h3>
+ <ul>
+ <li>Số hiệu nguyên tử Z bằng số proton.</li>
+ <li>Nguyên tử trung hòa có số electron bằng số proton.</li>
+ <li>Số khối A = proton + neutron.</li>
+ <li>Chu kỳ cho biết số lớp electron.</li>
+ <li>Nhóm A liên quan đến số electron hóa trị
+ đối với các nguyên tố nhóm chính.</li>
+ <li>Độ âm điện, bán kính nguyên tử và năng lượng
+ ion hóa có quy luật biến đổi tuần hoàn.</li>
+ </ul>
+
+ <p><b>Lưu ý:</b> Nguyên tử khối trung bình không nhất
+ thiết là số khối của một đồng vị cụ thể.
+ Số neutron ở trên chỉ là giá trị gần đúng.</p>
+ `;
+ info.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+document.getElementById("search").addEventListener("input",e=>{
+ const q=e.target.value.trim().toLowerCase();
+ const found=elements.find(el=>
+ el.symbol.toLowerCase()===q ||
+ el.name.toLowerCase().includes(q) ||
+ String(el.z)===q
+ );
+ if(found)showInfo(found);
+});
+</script>
+</body>
+</html>
